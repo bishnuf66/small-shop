@@ -8,7 +8,9 @@ function Homepage() {
     <div>
       <HomeBanner />
       <ExploreProducts />
+      <ExploreProducts />
       <Deals />
+      <ExploreProducts />
       <TestimonialCards />
     </div>
   );

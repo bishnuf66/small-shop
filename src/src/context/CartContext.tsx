@@ -1,19 +1,22 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-
-interface Product {
-  id: number;
-  image: string;
-  price: number;
-  rating: number;
-  title: string;
-  quantity: number;
-}
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+} from "react";
+import { toast } from "react-toastify";
+import { ProductType } from "../types/ProductType";
 
 interface CartContextType {
-  cart: Product[];
-  addToCart: (product: Product) => void;
+  cart: ProductType[];
+  addToCart: (product: ProductType) => void;
   increaseQuantity: (id: number) => void;
   decreaseQuantity: (id: number) => void;
+  removeFromCart: (id: number) => void;
+  clearCart: () => void;
+  getTotalPrice: () => number;
+  getTotalItems: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -21,29 +24,28 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [cart, setCart] = useState<Product[]>(() => {
-    // Load cart from localStorage on first render
+  const [cart, setCart] = useState<ProductType[]>(() => {
     const storedCart = localStorage.getItem("cart");
     return storedCart ? JSON.parse(storedCart) : [];
   });
 
   useEffect(() => {
-    // Save cart to localStorage whenever it changes
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: ProductType) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
         return prevCart.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + product.quantity }
             : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, product]; // Add new item if not in cart
     });
+    toast.success(`${product.title} added to cart`);
   };
 
   const increaseQuantity = (id: number) => {
@@ -52,6 +54,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
+    toast.success("Quantity increased");
   };
 
   const decreaseQuantity = (id: number) => {
@@ -62,15 +65,42 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         )
         .filter((item) => item.quantity > 0)
     );
+    toast.success("Quantity decreased");
   };
 
-  return (
-    <CartContext.Provider
-      value={{ cart, addToCart, increaseQuantity, decreaseQuantity }}
-    >
-      {children}
-    </CartContext.Provider>
+  const removeFromCart = (id: number) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    toast.error("Item removed from cart");
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    toast.error("Cart cleared");
+  };
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const value = useMemo(
+    () => ({
+      cart,
+      addToCart,
+      increaseQuantity,
+      decreaseQuantity,
+      removeFromCart,
+      clearCart,
+      getTotalPrice,
+      getTotalItems,
+    }),
+    [cart]
   );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {

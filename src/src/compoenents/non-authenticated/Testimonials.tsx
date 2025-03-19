@@ -25,7 +25,6 @@ const testimonials: Testimonial[] = [
     image: "/images/delivery-man.jpg",
     rating: 4,
   },
-  // Add more testimonials as needed
 ];
 
 export default function TestimonialCards() {
@@ -34,7 +33,7 @@ export default function TestimonialCards() {
       {testimonials.map((testimonial) => (
         <div
           key={testimonial.id}
-          className="testimonial-bg rounded-3xl p-8 text-white relative "
+          className="bg-[#4FA8FB] rounded-3xl md:p-8 p-4 text-white relative "
         >
           <h2 className="text-2xl font-bold mb-4">TESTIMONIAL</h2>
           <div className="flex items-start mb-4">
@@ -44,7 +43,7 @@ export default function TestimonialCards() {
               className="rounded-full border-2 w-16 h-16 border-red-500 object-cover"
             />
 
-            <p className="text-sm pl-16">{testimonial.content}</p>
+            <p className="text-sm md:pl-16">{testimonial.content}</p>
           </div>
           <div className="bg-white text-black py-1 px-3 rounded-full inline-block">
             {testimonial.name}
